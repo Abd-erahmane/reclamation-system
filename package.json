@@ -1,0 +1,21 @@
+{
+  "name": "mobilis-auth",
+  "version": "1.0.0",
+  "description": "Authentification Node.js Mobilis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "express-session": "^1.18.2",
+    "mysql2": "^3.16.0"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "type": "commonjs"
+}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mobilis | Dashboard</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <div class="card dashboard">
+        <h1>Tableau de bord</h1>
+        <% if (user.role==='admin' && openCount> 0) { %>
+            <div class="admin-alert">
+                🔔 <strong>
+                    <%= openCount %>
+                </strong> nouvelle(s) réclamation(s) en attente
+            </div>
+            <% } %>
+
+                <div class="info-box">
+                    <p><strong>Email :</strong>
+                        <%= user.email %>
+                    </p>
+                    <p>
+                        <strong>Rôle :</strong>
+                        <span class="badge <%= user.role %>">
+                            <%= user.role.toUpperCase() %>
+                        </span>
+                    </p>
+                </div>
+
+                <!-- ===== INTERFACE ADMIN ===== -->
+                <% if (user.role==='admin' ) { %>
+
+                    <h2>Réclamations reçues</h2>
+
+                    <% if (reclamations.length===0) { %>
+                        <p>Aucune réclamation pour le moment.</p>
+                        <% } else { %>
+
+                            <div class="table-wrapper">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Utilisateur</th>
+                                            <th>Sujet</th>
+                                            <th>Message</th>
+                                            <th>Statut</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        <% reclamations.forEach(r=> { %>
+                                            <tr>
+                                                <td>
+                                                    <%= r.email %>
+                                                </td>
+                                                <td>
+                                                    <%= r.subject %>
+                                                </td>
+                                                <td>
+                                                    <%= r.message %>
+                                                </td>
+                                                <td>
+                                                    <span class="status <%= r.status %>">
+                                                        <%= r.status %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <% if (r.status==='ouvert' ) { %>
+                                                        <form method="POST" action="/reclamation/status">
+                                                            <input type="hidden" name="id" value="<%= r.id %>">
+                                                            <button type="submit">Marquer traité</button>
+                                                        </form>
+                                                        <% } else { %>
+                                                            ✔️
+                                                            <% } %>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <% } %>
+
+                                <% } else { %>
+
+                                    <!-- ===== INTERFACE USER ===== -->
+
+                                    <h2>Envoyer une réclamation</h2>
+
+                                    <form method="POST" action="/reclamation">
+                                        <div class="field">
+                                            <input type="text" name="subject" id="subject" required placeholder=" "
+                                                autocomplete="off">
+                                            <label for="subject">Sujet</label>
+                                        </div>
+                                        <div class="field">
+                                            <textarea name="message" id="message" required placeholder=" "></textarea>
+                                            <label for="message">Décrivez votre problème...</label>
+                                        </div>
+                                        <button type="submit">Envoyer</button>
+                                    </form>
+
+                                    <% } %>
+
+                                        <div class="actions">
+                                            <a href="/logout" class="btn logout">Déconnexion</a>
+                                        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>reclamations | Connexion</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <div class="card">
+        <h1>reclamation</h1>
+        <p class="subtitle">Connexion sécurisée</p>
+
+        <% if (error) { %>
+            <div class="error">
+                <%= error %>
+            </div>
+            <% } %>
+
+                <form method="POST" action="/login">
+                    <div class="field">
+                        <input type="email" name="email" required>
+                        <label>Email</label>
+                    </div>
+
+                    <div class="field">
+                        <input type="password" name="password" required>
+                        <label>Mot de passe</label>
+                    </div>
+                    <p style="margin-top:15px;">
+                        Pas encore de compte ?
+                        <a href="/register">Créer un compte</a>
+                    </p>
+
+                    <button type="submit">Se connecter</button>
+                </form>
+    </div>
+
+</body>
+
+</html>
