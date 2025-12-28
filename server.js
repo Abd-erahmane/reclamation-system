@@ -13,7 +13,7 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 app.use(session({
-  secret: "mobilis_secret",
+  secret: process.env.SESSION_SECRET || "mobilis_secret_default",
   resave: false,
   saveUninitialized: false
 }));
@@ -263,6 +263,7 @@ app.get("/logout", (req, res) => {
 });
 
 /* ===== LANCEMENT SERVEUR ===== */
-app.listen(3000, () =>
-  console.log("Serveur lancé : http://localhost:3000")
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log(`Serveur lancé sur le port ${PORT}`)
 );
