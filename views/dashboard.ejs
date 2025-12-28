@@ -12,6 +12,33 @@
 </head>
 
 <body>
+    <div class="bg-animation">
+        <canvas id="bg-canvas"></canvas>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <a href="/dashboard" class="header-logo">
+                <img src="/logo.png" alt="Logo">
+                <span class="header-logo-text">Réclamations</span>
+            </a>
+            <nav class="header-nav">
+                <a href="/dashboard">Tableau de bord</a>
+                <% if (user.role==='admin' ) { %>
+                    <a href="/dashboard">Réclamations</a>
+                    <% } %>
+                        <div class="header-user-info">
+                            <span class="user-email">
+                                <%= user.email %>
+                            </span>
+                            <span class="badge <%= user.role %>">
+                                <%= user.role.toUpperCase() %>
+                            </span>
+                        </div>
+            </nav>
+        </div>
+    </header>
 
     <div class="card dashboard">
         <h1>Tableau de bord</h1>
@@ -38,50 +65,247 @@
                 <!-- ===== INTERFACE ADMIN ===== -->
                 <% if (user.role==='admin' ) { %>
 
+                    <!-- Statistiques Admin -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-info">
+                                <h3>
+                                    <%= reclamations.length %>
+                                </h3>
+                                <p>Total réclamations</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon warning">⏳</div>
+                            <div class="stat-info">
+                                <h3>
+                                    <%= openCount %>
+                                </h3>
+                                <p>En attente</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon success">✅</div>
+                            <div class="stat-info">
+                                <h3>
+                                    <%= reclamations.length - openCount %>
+                                </h3>
+                                <p>Traitées</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon info">👥</div>
+                            <div class="stat-info">
+                                <h3>
+                                    <%= new Set(reclamations.map(r=> r.email)).size %>
+                                </h3>
+                                <p>Utilisateurs actifs</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions rapides Admin -->
+                    <div class="admin-actions">
+                        <h3>⚡ Actions rapides</h3>
+                        <div class="action-buttons">
+                            <button class="btn-action" onclick="filterReclamations('all')">
+                                📋 Toutes les réclamations
+                            </button>
+                            <button class="btn-action" onclick="filterReclamations('ouvert')">
+                                ⏳ En attente uniquement
+                            </button>
+                            <button class="btn-action" onclick="filterReclamations('traité')">
+                                ✅ Traitées uniquement
+                            </button>
+                            <button class="btn-action" onclick="exportReclamations()">
+                                📥 Exporter (CSV)
+                            </button>
+                            <button class="btn-action" onclick="window.print()">
+                                🖨️ Imprimer
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Section Analytique (Data-Driven) -->
+                    <div class="analytics-section">
+                        <h3>📊 Tableaux de bord analytiques</h3>
+                        <div class="analytics-grid">
+
+                            <!-- Taux de Résolution -->
+                            <div class="analytics-card">
+                                <h4>🎯 Taux de résolution</h4>
+                                <div class="resolution-container">
+                                    <div class="resolution-info">
+                                        <span class="resolution-value">
+                                            <%= stats ? stats.resolutionRate : 0 %>%
+                                        </span>
+                                        <span class="resolution-label">Réclamations traitées</span>
+                                    </div>
+                                    <div class="progress-track">
+                                        <div class="progress-fill js-set-width"
+                                            data-width="<%= stats ? stats.resolutionRate : 0 %>"></div>
+                                    </div>
+                                    <p style="font-size: 13px; color: #64748b; margin-top: 10px;">
+                                        ⏱️ Temps moyen de traitement : <strong>
+                                            <%= stats ? stats.avgProcessingTime : 0 %> h
+                                        </strong>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Utilisateurs Actifs -->
+                            <div class="analytics-card">
+                                <h4>👥 Utilisateurs les plus actifs</h4>
+                                <ul class="activity-list">
+                                    <% if (stats && stats.activeUsers.length> 0) { %>
+                                        <% stats.activeUsers.forEach(([email, count])=> { %>
+                                            <li class="activity-item">
+                                                <div class="activity-user">
+                                                    <span class="avatar-small">👤</span>
+                                                    <span class="activity-email">
+                                                        <%= email %>
+                                                    </span>
+                                                </div>
+                                                <span class="activity-count">
+                                                    <%= count %>
+                                                </span>
+                                            </li>
+                                            <% }) %>
+                                                <% } else { %>
+                                                    <p style="font-size: 14px; color: #94a3b8;">Aucune donnée</p>
+                                                    <% } %>
+                                </ul>
+                            </div>
+
+                            <!-- Volume par jour -->
+                            <div class="analytics-card">
+                                <h4>📈 Volume des 7 derniers jours</h4>
+                                <div class="bar-chart">
+                                    <% if (stats && stats.volumeData) { %>
+                                        <% const maxVal=Math.max(...stats.volumeData.map(d=> d[1]), 1);
+                                            stats.volumeData.forEach(([date, count]) => {
+                                            const height = (count / maxVal) * 100;
+                                            %>
+                                            <div class="bar-container">
+                                                <div class="bar js-set-height" data-height="<%= height %>"
+                                                    data-value="<%= count %>"></div>
+                                                <span class="bar-label">
+                                                    <%= date.split('-')[2] %>/<%= date.split('-')[1] %>
+                                                </span>
+                                            </div>
+                                            <% }) %>
+                                                <% } %>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
                     <h2>Réclamations reçues</h2>
 
+                    <!-- Barre de recherche -->
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="🔍 Rechercher par email, sujet ou message..."
+                            onkeyup="searchReclamations()">
+                    </div>
+
                     <% if (reclamations.length===0) { %>
-                        <p>Aucune réclamation pour le moment.</p>
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>Aucune réclamation pour le moment.</p>
+                        </div>
                         <% } else { %>
 
                             <div class="table-wrapper">
-                                <table class="table">
+                                <table class="table" id="reclamationsTable">
                                     <thead>
                                         <tr>
+                                            <th>#</th>
                                             <th>Utilisateur</th>
+                                            <th>Urgence</th>
                                             <th>Sujet</th>
                                             <th>Message</th>
                                             <th>Statut</th>
-                                            <th>Action</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
 
-                                        <% reclamations.forEach(r=> { %>
-                                            <tr>
+                                        <% reclamations.forEach((r, index)=> { %>
+                                            <tr data-status="<%= r.status %>">
+                                                <td><strong>#<%= index + 1 %></strong></td>
                                                 <td>
-                                                    <%= r.email %>
+                                                    <div class="user-cell">
+                                                        <span class="user-avatar">👤</span>
+                                                        <%= r.email %>
+                                                    </div>
                                                 </td>
                                                 <td>
-                                                    <%= r.subject %>
+                                                    <span class="priority-badge <%= r.priority.toLowerCase() %>">
+                                                        <%= r.priority %>
+                                                    </span>
                                                 </td>
+                                                <td><strong>
+                                                        <%= r.subject %>
+                                                    </strong></td>
                                                 <td>
-                                                    <%= r.message %>
+                                                    <div class="message-cell">
+                                                        <%= r.message.length> 50 ? r.message.substring(0, 50) + '...' :
+                                                            r.message %>
+                                                            <% if (r.message.length> 50) { %>
+                                                                <button class="btn-view-more"
+                                                                    data-message="<%= r.message.replace(/" /g, '&quot;'
+                                                                    ) %>"
+                                                                    onclick="showFullMessage(this)">
+                                                                    Voir plus
+                                                                </button>
+                                                                <% } %>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <span class="status <%= r.status %>">
-                                                        <%= r.status %>
+                                                        <%= r.status==='ouvert' ? '⏳ ' : '✅ ' %>
+                                                            <%= r.status %>
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <% if (r.status==='ouvert' ) { %>
-                                                        <form method="POST" action="/reclamation/status">
-                                                            <input type="hidden" name="id" value="<%= r.id %>">
-                                                            <button type="submit">Marquer traité</button>
-                                                        </form>
-                                                        <% } else { %>
-                                                            ✔️
-                                                            <% } %>
+                                                    <span class="date-cell">
+                                                        <%= new Date(r.created_at ||
+                                                            Date.now()).toLocaleDateString('fr-FR') %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons-cell">
+                                                        <% if (r.status==='ouvert' ) { %>
+                                                            <form method="POST" action="/reclamation/status"
+                                                                class="admin-status-form">
+                                                                <input type="hidden" name="id" value="<%= r.id %>">
+                                                                <textarea name="admin_comment"
+                                                                    placeholder="Note/Réponse..."></textarea>
+                                                                <button type="submit" class="btn-small btn-success">
+                                                                    ✓ Traiter
+                                                                </button>
+                                                            </form>
+                                                            <% } else { %>
+                                                                <div class="treated-info">
+                                                                    <span class="treated-badge">✔️ Traité</span>
+                                                                    <% if (r.admin_comment) { %>
+                                                                        <div class="admin-note-visible">
+                                                                            <strong>Note:</strong>
+                                                                            <%= r.admin_comment %>
+                                                                        </div>
+                                                                        <% } %>
+                                                                </div>
+                                                                <% } %>
+                                                                    <button class="btn-small btn-danger"
+                                                                        data-id="<%= r.id %>"
+                                                                        onclick="deleteReclamation(this.dataset.id);"
+                                                                        title="Supprimer">
+                                                                        🗑️
+                                                                    </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             <% }) %>
@@ -96,29 +320,346 @@
 
                                     <!-- ===== INTERFACE USER ===== -->
 
+                                    <!-- Statistiques Utilisateur -->
+                                    <div class="stats-grid">
+                                        <div class="stat-card">
+                                            <div class="stat-icon">📝</div>
+                                            <div class="stat-info">
+                                                <h3>
+                                                    <%= userReclamations ? userReclamations.length : 0 %>
+                                                </h3>
+                                                <p>Mes réclamations</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon warning">⏳</div>
+                                            <div class="stat-info">
+                                                <h3>
+                                                    <%= userReclamations ? userReclamations.filter(r=> r.status ===
+                                                        'ouvert').length : 0 %>
+                                                </h3>
+                                                <p>En attente</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon success">✅</div>
+                                            <div class="stat-info">
+                                                <h3>
+                                                    <%= userReclamations ? userReclamations.filter(r=> r.status ===
+                                                        'traité').length : 0 %>
+                                                </h3>
+                                                <p>Traitées</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <h2>Envoyer une réclamation</h2>
 
                                     <form method="POST" action="/reclamation">
                                         <div class="field">
-                                            <input type="text" name="subject" id="subject" required placeholder=" "
-                                                autocomplete="off">
                                             <label for="subject">Sujet</label>
+                                            <input type="text" name="subject" id="subject" required autocomplete="off">
                                         </div>
                                         <div class="field">
-                                            <textarea name="message" id="message" required placeholder=" "></textarea>
-                                            <label for="message">Décrivez votre problème...</label>
+                                            <label for="priority">Urgence</label>
+                                            <select name="priority" id="priority">
+                                                <option value="Basse">Basse</option>
+                                                <option value="Moyenne" selected>Moyenne</option>
+                                                <option value="Haute">Haute</option>
+                                            </select>
                                         </div>
-                                        <button type="submit">Envoyer</button>
+                                        <div class="field">
+                                            <label for="message">Description du problème</label>
+                                            <textarea name="message" id="message" required></textarea>
+                                        </div>
+                                        <button type="submit">Envoyer la réclamation</button>
                                     </form>
 
-                                    <% } %>
+                                    <!-- Historique des réclamations utilisateur -->
+                                    <h2>📋 Mes réclamations</h2>
 
-                                        <div class="actions">
-                                            <a href="/logout" class="btn logout">Déconnexion</a>
+                                    <% if (!userReclamations || userReclamations.length===0) { %>
+                                        <div class="empty-state">
+                                            <div class="empty-icon">📭</div>
+                                            <p>Vous n'avez pas encore envoyé de réclamation.</p>
                                         </div>
+                                        <% } else { %>
+                                            <div class="user-reclamations-list">
+                                                <% userReclamations.forEach((r, index)=> { %>
+                                                    <div class="reclamation-card <%= r.status %>">
+                                                        <div class="reclamation-header">
+                                                            <div class="reclamation-title">
+                                                                <strong>#<%= index + 1 %> - <%= r.subject %></strong>
+                                                                <span
+                                                                    class="priority-badge <%= r.priority.toLowerCase() %>"
+                                                                    style="margin-left:10px; font-size:10px;">
+                                                                    <%= r.priority %>
+                                                                </span>
+                                                            </div>
+                                                            <span class="status <%= r.status %>">
+                                                                <%= r.status==='ouvert' ? '⏳ En attente' : '✅ Traitée'
+                                                                    %>
+                                                            </span>
+                                                        </div>
+                                                        <div class="reclamation-body">
+                                                            <p>
+                                                                <%= r.message %>
+                                                            </p>
+
+                                                            <% if (r.status==='traité' ) { %>
+                                                                <div class="resolution-banner">
+                                                                    <div class="resolution-header-user">
+                                                                        <span>✅ Résolue le <%= r.treated_at ? new
+                                                                                Date(r.treated_at).toLocaleDateString('fr-FR')
+                                                                                : 'écemment' %></span>
+                                                                    </div>
+                                                                    <% if (r.admin_comment) { %>
+                                                                        <div class="user-admin-reply">
+                                                                            <strong>💡 Message de l'assistance
+                                                                                :</strong>
+                                                                            <p>
+                                                                                <%= r.admin_comment %>
+                                                                            </p>
+                                                                        </div>
+                                                                        <% } %>
+                                                                </div>
+                                                                <% } %>
+                                                        </div>
+                                                        <div class="reclamation-footer">
+                                                            <span class="reclamation-date">
+                                                                📅 <%= new Date(r.created_at ||
+                                                                    Date.now()).toLocaleDateString('fr-FR', {
+                                                                    year: 'numeric' , month: 'long' , day: 'numeric' })
+                                                                    %>
+                                                            </span>
+                                                            <% if (r.status==='ouvert' ) { %>
+                                                                <button class="btn-small btn-danger"
+                                                                    data-id="<%= r.id %>"
+                                                                    onclick="deleteUserReclamation(this.dataset.id);"
+                                                                    title="Supprimer">
+                                                                    🗑️ Supprimer
+                                                                </button>
+                                                                <% } %>
+                                                        </div>
+                                                    </div>
+                                                    <% }) %>
+                                            </div>
+                                            <% } %>
+
+                                                <% } %>
+
+                                                    <div class="actions">
+                                                        <a href="/logout" class="btn logout">Déconnexion</a>
+                                                    </div>
 
     </div>
 
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>À propos</h3>
+                    <p>Système de gestion des réclamations professionnel et sécurisé. Nous nous engageons à traiter vos
+                        demandes rapidement et efficacement.</p>
+                    <div class="footer-social">
+                        <a href="#" title="Facebook">📘</a>
+                        <a href="#" title="Twitter">🐦</a>
+                        <a href="#" title="LinkedIn">💼</a>
+                        <a href="#" title="Instagram">📷</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Navigation</h3>
+                    <ul class="footer-links">
+                        <li><a href="/dashboard">→ Tableau de bord</a></li>
+                        <li><a href="/dashboard">→ Mes réclamations</a></li>
+                        <% if (user.role==='admin' ) { %>
+                            <li><a href="/dashboard">→ Administration</a></li>
+                            <% } %>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">→ Centre d'aide</a></li>
+                        <li><a href="#">→ FAQ</a></li>
+                        <li><a href="#">→ Contact</a></li>
+                        <li><a href="#">→ Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Légal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">→ Mentions légales</a></li>
+                        <li><a href="#">→ Confidentialité</a></li>
+                        <li><a href="#">→ CGU</a></li>
+                        <li><a href="#">→ Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Système de Réclamations. Tous droits réservés.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Politique de confidentialité</a>
+                    <a href="#">Conditions d'utilisation</a>
+                    <a href="#">Plan du site</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript pour les fonctionnalités interactives -->
+    <script>
+        // Initialisation des graphiques (Data-driven styles)
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.js-set-width').forEach(el => {
+                el.style.width = el.getAttribute('data-width') + '%';
+            });
+            document.querySelectorAll('.js-set-height').forEach(el => {
+                el.style.height = el.getAttribute('data-height') + '%';
+            });
+        });
+
+        // Fonction pour afficher le message complet
+        function showFullMessage(button) {
+            const message = button.getAttribute('data-message');
+            alert(message);
+        }
+
+        // Fonction de recherche
+        function searchReclamations() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('reclamationsTable');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let found = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                    const cell = cells[j];
+                    if (cell) {
+                        const textValue = cell.textContent || cell.innerText;
+                        if (textValue.toLowerCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                row.style.display = found ? '' : 'none';
+            }
+        }
+
+        // Fonction de filtrage par statut
+        function filterReclamations(status) {
+            const table = document.getElementById('reclamationsTable');
+            if (!table) return;
+
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const rowStatus = row.getAttribute('data-status');
+
+                if (status === 'all' || rowStatus === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+
+        // Fonction d'export CSV
+        function exportReclamations() {
+            const table = document.getElementById('reclamationsTable');
+            if (!table) {
+                alert('Aucune réclamation à exporter');
+                return;
+            }
+
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = [], cols = rows[i].querySelectorAll('td, th');
+
+                for (let j = 0; j < cols.length - 1; j++) { // Exclure la colonne Actions
+                    let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+                    data = data.replace(/"/g, '""');
+                    row.push('"' + data + '"');
+                }
+
+                csv.push(row.join(','));
+            }
+
+            const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const downloadLink = document.createElement('a');
+            downloadLink.download = 'reclamations_' + new Date().toISOString().split('T')[0] + '.csv';
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Fonction de suppression (Admin)
+        function deleteReclamation(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?')) {
+                fetch('/reclamation/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: id })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Réclamation supprimée avec succès');
+                            location.reload();
+                        } else {
+                            alert('Erreur lors de la suppression');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('Erreur lors de la suppression');
+                    });
+            }
+        }
+
+        // Fonction de suppression (Utilisateur)
+        function deleteUserReclamation(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?')) {
+                fetch('/reclamation/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: id })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Réclamation supprimée avec succès');
+                            location.reload();
+                        } else {
+                            alert('Erreur lors de la suppression');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('Erreur lors de la suppression');
+                    });
+            }
+        }
+    </script>
+
+    <script src="/particles.js"></script>
 </body>
 
 </html>

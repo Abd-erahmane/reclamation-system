@@ -13,6 +13,23 @@
 </head>
 
 <body>
+    <div class="bg-animation">
+        <canvas id="bg-canvas"></canvas>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <a href="/" class="header-logo">
+                <img src="/logo.png" alt="Logo">
+                <span class="header-logo-text">Réclamations</span>
+            </a>
+            <nav class="header-nav">
+                <a href="/">Connexion</a>
+                <a href="/register">Inscription</a>
+            </nav>
+        </div>
+    </header>
 
     <div class="card">
         <h1>reclamation</h1>
@@ -26,13 +43,13 @@
 
                 <form method="POST" action="/login">
                     <div class="field">
-                        <input type="email" name="email" required>
                         <label>Email</label>
+                        <input type="email" name="email" required>
                     </div>
 
                     <div class="field">
-                        <input type="password" name="password" required>
                         <label>Mot de passe</label>
+                        <input type="password" name="password" required>
                     </div>
                     <p style="margin-top:15px;">
                         Pas encore de compte ?
@@ -43,6 +60,59 @@
                 </form>
     </div>
 
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>À propos</h3>
+                    <p>Système de gestion des réclamations professionnel et sécurisé. Nous nous engageons à traiter vos
+                        demandes rapidement et efficacement.</p>
+                    <div class="footer-social">
+                        <a href="#" title="Facebook">📘</a>
+                        <a href="#" title="Twitter">🐦</a>
+                        <a href="#" title="LinkedIn">💼</a>
+                        <a href="#" title="Instagram">📷</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Navigation</h3>
+                    <ul class="footer-links">
+                        <li><a href="/">→ Connexion</a></li>
+                        <li><a href="/register">→ Inscription</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">→ Centre d'aide</a></li>
+                        <li><a href="#">→ FAQ</a></li>
+                        <li><a href="#">→ Contact</a></li>
+                        <li><a href="#">→ Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Légal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">→ Mentions légales</a></li>
+                        <li><a href="#">→ Confidentialité</a></li>
+                        <li><a href="#">→ CGU</a></li>
+                        <li><a href="#">→ Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Système de Réclamations. Tous droits réservés.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Politique de confidentialité</a>
+                    <a href="#">Conditions d'utilisation</a>
+                    <a href="#">Plan du site</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/particles.js"></script>
 </body>
 
 </html>
