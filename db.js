@@ -15,3 +15,5 @@ db.connect((err) => {
     console.log("✅ MySQL connecté");
   }
 });
+
+module.exports = db;
